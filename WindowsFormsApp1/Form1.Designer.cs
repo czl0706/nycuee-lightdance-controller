@@ -156,6 +156,7 @@
             this.lblMusicFile.Size = new System.Drawing.Size(73, 25);
             this.lblMusicFile.TabIndex = 7;
             this.lblMusicFile.Text = "No File";
+            this.lblMusicFile.Click += new System.EventHandler(this.lblMusicFile_Click);
             // 
             // txtComment
             // 

@@ -16,6 +16,8 @@ using System.IO.Ports;
 using System.Threading;
 using System.Net.Sockets;
 using System.Net;
+using System.Runtime.InteropServices.ComTypes;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace WindowsFormsApp1
@@ -49,11 +51,14 @@ namespace WindowsFormsApp1
         const int numberOfPeople = 9;
         const int bodyPart = 8;
         private PictureBox[, ] bodyParts;
+
+        SetupIniIP ini = new SetupIniIP();
+        string ini_filename = "lightdance.ini"; 
         //private int[, ] bodyPartsColorCode;
 
         //IPEndPoint test = ;
         IPEndPoint[] devs = {
-            //new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6000),
+            new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6000),
             new IPEndPoint(IPAddress.Parse("192.168.137.100"), 6000),
             new IPEndPoint(IPAddress.Parse("192.168.137.101"), 6000),
             new IPEndPoint(IPAddress.Parse("192.168.137.102"), 6000),
@@ -177,8 +182,44 @@ namespace WindowsFormsApp1
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Text = "Lightdance";
-            colorSelectorInit(); 
+            colorSelectorInit();
             bodyPartInit();
+
+            if (File.Exists(Application.StartupPath + "\\" + ini_filename))
+            {
+                ofd1.FileName = ini.IniReadValue("lightdance", "scriptURL", ini_filename);
+                ofd.FileName = ini.IniReadValue("lightdance", "musicURL", ini_filename);
+                
+                if (ofd.FileName != "")
+                {
+                    playerTimer = new System.Windows.Forms.Timer();
+                    playerTimer.Interval = 10;
+                    playerTimer.Tick += PlayerTimer_Tick;
+                    WMP.URL = ofd.FileName;
+                    WMP.PlayStateChange += WMP_PlayStateChange;
+                    lblMusicFile.Text = ofd.SafeFileName;
+                    WMP.controls.stop();
+                }
+
+                if (ofd1.FileName != "")
+                {
+                    lblJsonFile.Text = ofd1.SafeFileName;
+                    string s = File.ReadAllText(ofd1.FileName);
+                    File.WriteAllText(ofd1.FileName + ".bak", s);
+                    lightData = JsonConvert.DeserializeObject<JsonFile>(s).data;
+                    lstLightData.Items.Clear();
+                    foreach (Data x in lightData)
+                    {
+                        string itemValue = x.comment + ", " + x.timeStart;
+                        lstLightData.Items.Add(itemValue);
+                    }
+                }
+            }
+            else
+            {
+                File.Create(Application.StartupPath + "\\" + ini_filename);
+            }
+
             for (int i = 0;i < numberOfPeople; i += 1)
             {
                 metroComboBox1.Items.Add(i.ToString());
@@ -190,6 +231,7 @@ namespace WindowsFormsApp1
 
         private void btnOpenFile_Click(object sender, EventArgs e)
         {
+            ofd1.Filter = "json file (*.json)|*.json";
             ofd1.ShowDialog();
             if (ofd1.SafeFileName == "") { return; }
             lblJsonFile.Text = ofd1.SafeFileName;
@@ -202,6 +244,8 @@ namespace WindowsFormsApp1
                 string itemValue = x.comment + ", " + x.timeStart;
                 lstLightData.Items.Add(itemValue);
             }
+
+            ini.IniWriteValue("lightdance", "scriptURL", ofd1.FileName, ini_filename);
         }
 
         System.Windows.Forms.Timer playerTimer;
@@ -344,21 +388,26 @@ namespace WindowsFormsApp1
         private void btnPlayMusic_Click(object sender, EventArgs e)
         {
             btnPlayMusic.Focus();
+            if (ofd.SafeFileName == "")
+            {
+                ofd.Filter = "music files (*.mp3;*.wav)|*.mp3;*.wav";
+                ofd.ShowDialog();
+                if (ofd.SafeFileName == "") { return; }
 
+                playerTimer = new System.Windows.Forms.Timer();
+                playerTimer.Interval = 10;
+                playerTimer.Tick += PlayerTimer_Tick;
+                WMP.URL = ofd.FileName;
+                WMP.PlayStateChange += WMP_PlayStateChange;
+                lblMusicFile.Text = ofd.SafeFileName;
+                WMP.controls.stop();
+                
+                ini.IniWriteValue("lightdance", "musicURL", ofd.FileName, ini_filename);
+                return;
+            }
+            
             if (!play)
             {
-                if (ofd.SafeFileName == "")
-                {
-                    ofd.ShowDialog();
-                    if (ofd.SafeFileName == "") { return; }
-
-                    playerTimer = new System.Windows.Forms.Timer();
-                    playerTimer.Interval = 10;
-                    playerTimer.Tick += PlayerTimer_Tick;
-                    WMP.URL = ofd.FileName;
-                    WMP.PlayStateChange += WMP_PlayStateChange;
-                    lblMusicFile.Text = ofd.SafeFileName;
-                }
                 WMP.controls.play();
 
                 //playerTimer.Enabled = true;
@@ -371,7 +420,7 @@ namespace WindowsFormsApp1
                 //playerTimer.Enabled = false;
                 //btnPlayMusic.Text = "Play";
             }
-            play = !play;
+            play = !play;            
         }
 
         private void WMP_PlayStateChange(int NewState)
@@ -467,7 +516,7 @@ namespace WindowsFormsApp1
         Queue<Data> playMode_data;
         static byte[] data_array = new byte [numberOfPeople * bodyPart];
         Data temp;
-        string temp_lbl;
+
         //private void btnPlayMode_Play_Click(object sender, EventArgs e)
         //{
         //    try
@@ -488,27 +537,48 @@ namespace WindowsFormsApp1
         //    playMode_WMP.URL = ofd.FileName;
         //    playMode_playerTimer.Enabled = true;
         //    socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+        //    temp = playMode_data.Dequeue();
+        //    temp_lbl = temp.comment;
+        //    data_array = (temp.lights).ToArray();
+        //    playMode_t = TimeSpan.Parse("00:" + temp.timeStart);
         //}
 
         //private void PlayMode_playerTimer_Tick(object sender, EventArgs e)
         //{
-        //    if(playMode_data.Count == 0) { playMode_playerTimer.Enabled = false; return; }
-        //    temp = playMode_data.Peek();
-        //    data_array = (temp.lights).ToArray();
-        //    if (!TimeSpan.TryParse("00:" + temp.timeStart, out playMode_t))
-        //    {
-        //        return;
-        //    }
+        //    //if (!TimeSpan.TryParse("00:" + temp.timeStart, out playMode_t))
+        //    //{
+        //    //    return;
+        //    //}
         //    if (TimeSpan.FromSeconds(playMode_WMP.controls.currentPosition).CompareTo(playMode_t) >= 0)
         //    {
-        //        for (int i = 0; i < 7; i = i + 1)
+        //        for (int i = 0; i < numberOfPeople; i = i + 1)
         //        {
-        //            socket.SendTo(data_array, i * 7, 7, 0, devs[i]);
+        //            socket.SendTo(data_array, i * bodyPart, 7, 0, devs[i]);
         //        }
-        //        playMode_data.Dequeue();
+
+        //        LblplayMode.Text = temp_lbl;
+        //        for (int i = 0; i < numberOfPeople; i++)
+        //        {
+        //            for (int j = 0; j < bodyPart; j++)
+        //            {
+        //                int index = data_array[i * bodyPart + j];
+        //                bodyParts[i, j].BackColor = getColor(colorTable[index]);
+        //            }
+        //        }
+
+        //        if (playMode_data.Count == 0) 
+        //        { 
+        //            playMode_playerTimer.Enabled = false; 
+        //            return; 
+        //        }
+
+        //        temp = playMode_data.Dequeue();
+        //        temp_lbl = temp.comment;
+        //        data_array = (temp.lights).ToArray();
+        //        playMode_t = TimeSpan.Parse("00:" + temp.timeStart);
         //    }
         //}
-
         private void btnPlayMode_Play_Click(object sender, EventArgs e)
         {
             try
@@ -521,6 +591,12 @@ namespace WindowsFormsApp1
                 return;
             }
 
+            if (playMode_playerTimer != null)
+            {
+                playMode_playerTimer.Dispose(); playMode_playerTimer = null ;
+                playMode_WMP.controls.stop();
+            }
+
             playMode_playerTimer = new System.Windows.Forms.Timer();
             playMode_playerTimer.Interval = 50;
             playMode_playerTimer.Tick += PlayMode_playerTimer_Tick;
@@ -530,26 +606,32 @@ namespace WindowsFormsApp1
             playMode_playerTimer.Enabled = true;
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
+            //temp = playMode_data.Dequeue();
+            //temp_lbl = temp.comment;
+            //data_array = (temp.lights).ToArray();
+            //playMode_t = TimeSpan.Parse("00:" + temp.timeStart);
+
             temp = playMode_data.Dequeue();
-            temp_lbl = temp.comment;
-            data_array = (temp.lights).ToArray();
+            //temp_lbl = "";
+            data_array = new byte[numberOfPeople * bodyPart];
             playMode_t = TimeSpan.Parse("00:" + temp.timeStart);
+
+            btnPlayMode_Play.Text = "Restart";
         }
 
+        int tick = 0, last = 0;
         private void PlayMode_playerTimer_Tick(object sender, EventArgs e)
         {
             //if (!TimeSpan.TryParse("00:" + temp.timeStart, out playMode_t))
             //{
             //    return;
             //}
+            
             if (TimeSpan.FromSeconds(playMode_WMP.controls.currentPosition).CompareTo(playMode_t) >= 0)
             {
-                for (int i = 0; i < numberOfPeople; i = i + 1)
-                {
-                    socket.SendTo(data_array, i * bodyPart, 7, 0, devs[i]);
-                }
-
-                LblplayMode.Text = temp_lbl;
+                tick = 4;
+                data_array = (temp.lights).ToArray();
+                LblplayMode.Text = temp.comment;
                 for (int i = 0; i < numberOfPeople; i++)
                 {
                     for (int j = 0; j < bodyPart; j++)
@@ -559,16 +641,33 @@ namespace WindowsFormsApp1
                     }
                 }
 
-                if (playMode_data.Count == 0) 
+                if (playMode_data.Count != 0) 
                 { 
-                    playMode_playerTimer.Enabled = false; 
-                    return; 
+                    temp = playMode_data.Dequeue();
+                    playMode_t = TimeSpan.Parse("00:" + temp.timeStart);
+                    //playMode_playerTimer.Enabled = false;
+                    //return;
                 }
+                else
+                {
+                    temp = null;
+                    playMode_t = TimeSpan.Parse("01:00:00.00");
+                }
+            }
 
-                temp = playMode_data.Dequeue();
-                temp_lbl = temp.comment;
-                data_array = (temp.lights).ToArray();
-                playMode_t = TimeSpan.Parse("00:" + temp.timeStart);
+            tick += 1;
+            if (tick == 5)
+            {
+                for (int i = 0; i < numberOfPeople; i = i + 1)
+                {
+                    socket.SendTo(data_array, i * bodyPart, 7, 0, devs[i]);
+                }
+                if (temp == null)
+                {
+                    last += 1;
+                    if (last == 5) { last = 0; playMode_playerTimer.Enabled = false; }
+                }
+                tick = 0;
             }
         }
 
@@ -594,11 +693,52 @@ namespace WindowsFormsApp1
             }
         }
 
+        private void lblMusicFile_Click(object sender, EventArgs e)
+        {
+            ofd.Filter = "music files (*.mp3;*.wav)|*.mp3;*.wav";
+            ofd.ShowDialog();
+            if (ofd.SafeFileName == "") { return; }
+
+            if (playerTimer != null) { playerTimer.Dispose(); playerTimer = null; }
+            playerTimer = new System.Windows.Forms.Timer();
+            playerTimer.Interval = 10;
+            playerTimer.Tick += PlayerTimer_Tick;
+            WMP.URL = ofd.FileName;
+            WMP.PlayStateChange += WMP_PlayStateChange;
+            lblMusicFile.Text = ofd.SafeFileName;
+            WMP.controls.stop();
+
+            ini.IniWriteValue("lightdance", "musicURL", ofd.FileName, ini_filename);
+            return;
+        }
+
         private void btnStopMusic_Click(object sender, EventArgs e)
         {
             WMP.controls.stop();
             txtTimeStamp.Text = "00:00.00";
             play = false;
+        }
+
+        public class SetupIniIP
+        {
+            public string path;
+            [DllImport("kernel32", CharSet = CharSet.Unicode)]
+            private static extern long WritePrivateProfileString(string section,
+            string key, string val, string filePath);
+            [DllImport("kernel32", CharSet = CharSet.Unicode)]
+            private static extern int GetPrivateProfileString(string section,
+            string key, string def, StringBuilder retVal,
+            int size, string filePath);
+            public void IniWriteValue(string Section, string Key, string Value, string inipath)
+            {
+                WritePrivateProfileString(Section, Key, Value, Application.StartupPath + "\\" + inipath);
+            }
+            public string IniReadValue(string Section, string Key, string inipath)
+            {
+                StringBuilder temp = new StringBuilder(255);
+                int i = GetPrivateProfileString(Section, Key, "", temp, 255, Application.StartupPath + "\\" + inipath);
+                return temp.ToString();
+            }
         }
     }
 }

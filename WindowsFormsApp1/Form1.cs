@@ -47,7 +47,7 @@ namespace WindowsFormsApp1
         Color currentColor = Color.Black;
 
         const int numberOfPeople = 9;
-        const int bodyPart = 7;
+        const int bodyPart = 8;
         private PictureBox[, ] bodyParts;
         //private int[, ] bodyPartsColorCode;
 
@@ -123,12 +123,13 @@ namespace WindowsFormsApp1
             for (int i = 0; i < numberOfPeople; i += 1)
             {
                 bodyParts[i, 0] = new PictureBox(); // bodyPart_Head
-                bodyParts[i, 1] = new PictureBox(); // bodyPart_rightShoulder
-                bodyParts[i, 2] = new PictureBox(); // bodyPart_rightArm
-                bodyParts[i, 3] = new PictureBox(); // bodyPart_leftShoulder
-                bodyParts[i, 4] = new PictureBox(); // bodyPart_leftArm
+                bodyParts[i, 1] = new PictureBox(); // bodyPart_rightarm
+                bodyParts[i, 2] = new PictureBox(); // bodyPart_rightpalm
+                bodyParts[i, 3] = new PictureBox(); // bodyPart_leftarm
+                bodyParts[i, 4] = new PictureBox(); // bodyPart_leftpaln
                 bodyParts[i, 5] = new PictureBox(); // bodyPart_rightLeg
                 bodyParts[i, 6] = new PictureBox(); // bodyPart_leftLeg
+                bodyParts[i, 7] = new PictureBox(); // belly
 
                 for (int j = 0; j < bodyPart; j += 1)
                 {
@@ -145,6 +146,7 @@ namespace WindowsFormsApp1
                 bodyParts[i, 4].Size = new Size(25, 60);
                 bodyParts[i, 5].Size = new Size(25, 80);
                 bodyParts[i, 6].Size = new Size(25, 80);
+                bodyParts[i, 7].Size = new Size(80, 100);
 
                 int margin = 5;
                 bodyParts[i, 0].Location = new Point(startX + margin + 25 + 10, startY);
@@ -154,13 +156,14 @@ namespace WindowsFormsApp1
                 bodyParts[i, 4].Location = new Point(startX + margin * 2 + 105, startY + 120 + margin * 2);
                 bodyParts[i, 5].Location = new Point(startX + 25 + margin, startY + 160 + margin * 2);
                 bodyParts[i, 6].Location = new Point(startX + 80 + margin, startY + 160 + margin * 2);
+                bodyParts[i, 7].Location = new Point(startX + 25 + margin, startY + 60 + margin);
 
-                PictureBox belly = new PictureBox();
+                /*PictureBox belly = new PictureBox();
                 belly.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
                 this.Controls.Add(belly);
                 belly.Size = new Size(80, 100);
                 belly.Location = new Point(startX + 25 + margin, startY + 60 + margin);
-                belly.BackColor = Color.Black;
+                belly.BackColor = Color.Black;*/
 
                 startX += 180;
                 
@@ -183,7 +186,6 @@ namespace WindowsFormsApp1
             grpPlayMode.Location = grpEditMode.Location;
             grpEditMode.Visible = true;
             grpPlayMode.Visible = false;
-
         }
 
         private void btnOpenFile_Click(object sender, EventArgs e)
@@ -318,7 +320,6 @@ namespace WindowsFormsApp1
                 {
                     uint colorVal = (uint)(bodyParts[i, j].BackColor.R) << 16 | (uint)(bodyParts[i, j].BackColor.G) << 8 | (uint)(bodyParts[i, j].BackColor.B);
                     byte colorIndex = (byte)Array.IndexOf(colorTable, colorVal);
-
                     lightData[indexToInsert].lights[i * bodyPart + j] = colorIndex;
                 }
             }

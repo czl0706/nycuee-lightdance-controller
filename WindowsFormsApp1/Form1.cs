@@ -189,8 +189,8 @@ namespace WindowsFormsApp1
             {
                 ofd1.FileName = ini.IniReadValue("lightdance", "scriptURL", ini_filename);
                 ofd.FileName = ini.IniReadValue("lightdance", "musicURL", ini_filename);
-                
-                if (ofd.FileName != "")
+
+                if (ofd.FileName != "" && File.Exists(ofd.FileName))
                 {
                     playerTimer = new System.Windows.Forms.Timer();
                     playerTimer.Interval = 10;
@@ -200,11 +200,16 @@ namespace WindowsFormsApp1
                     lblMusicFile.Text = ofd.SafeFileName;
                     WMP.controls.stop();
                 }
-
-                if (ofd1.FileName != "")
+                else
                 {
-                    lblJsonFile.Text = ofd1.SafeFileName;
+                    ini.IniWriteValue("lightdance", "musicURL", "", ini_filename);
+                }
+
+
+                if (ofd1.FileName != "" && File.Exists(ofd1.FileName))
+                {
                     string s = File.ReadAllText(ofd1.FileName);
+                    lblJsonFile.Text = ofd1.SafeFileName;
                     File.WriteAllText(ofd1.FileName + ".bak", s);
                     lightData = JsonConvert.DeserializeObject<JsonFile>(s).data;
                     lstLightData.Items.Clear();
@@ -214,6 +219,12 @@ namespace WindowsFormsApp1
                         lstLightData.Items.Add(itemValue);
                     }
                 }
+                else 
+                { 
+                    ini.IniWriteValue("lightdance", "scriptURL", "", ini_filename); 
+                }
+
+                
             }
             else
             {

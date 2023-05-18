@@ -58,7 +58,7 @@ namespace WindowsFormsApp1
 
         //IPEndPoint test = ;
         IPEndPoint[] devs = {
-            new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6000),
+            //new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6000),
             new IPEndPoint(IPAddress.Parse("192.168.137.100"), 6000),
             new IPEndPoint(IPAddress.Parse("192.168.137.101"), 6000),
             new IPEndPoint(IPAddress.Parse("192.168.137.102"), 6000),
@@ -127,14 +127,14 @@ namespace WindowsFormsApp1
             bodyParts = new PictureBox[numberOfPeople, bodyPart];
             for (int i = 0; i < numberOfPeople; i += 1)
             {
-                bodyParts[i, 0] = new PictureBox(); // bodyPart_Head
-                bodyParts[i, 1] = new PictureBox(); // bodyPart_rightarm
-                bodyParts[i, 2] = new PictureBox(); // bodyPart_rightpalm
-                bodyParts[i, 3] = new PictureBox(); // bodyPart_leftarm
-                bodyParts[i, 4] = new PictureBox(); // bodyPart_leftpaln
-                bodyParts[i, 5] = new PictureBox(); // bodyPart_rightLeg
-                bodyParts[i, 6] = new PictureBox(); // bodyPart_leftLeg
-                bodyParts[i, 7] = new PictureBox(); // belly
+                bodyParts[i, 0] = new PictureBox(); // bodyPart_rightLeg
+                bodyParts[i, 1] = new PictureBox(); // bodyPart_leftLeg
+                bodyParts[i, 2] = new PictureBox(); // belly
+                bodyParts[i, 3] = new PictureBox(); // bodyPart_rightarm
+                bodyParts[i, 4] = new PictureBox(); // bodyPart_rightpalm
+                bodyParts[i, 5] = new PictureBox(); // bodyPart_Head
+                bodyParts[i, 6] = new PictureBox(); // bodyPart_leftarm
+                bodyParts[i, 7] = new PictureBox(); // bodyPart_leftpaln
 
                 for (int j = 0; j < bodyPart; j += 1)
                 {
@@ -144,24 +144,24 @@ namespace WindowsFormsApp1
                     this.Controls.Add(bodyParts[i, j]);
                 }
 
-                bodyParts[i, 0].Size = new Size(60, 60);
-                bodyParts[i, 1].Size = new Size(25, 60);
-                bodyParts[i, 2].Size = new Size(25, 60);
+                bodyParts[i, 0].Size = new Size(25, 80);
+                bodyParts[i, 1].Size = new Size(25, 80);
+                bodyParts[i, 2].Size = new Size(80, 100);
                 bodyParts[i, 3].Size = new Size(25, 60);
                 bodyParts[i, 4].Size = new Size(25, 60);
-                bodyParts[i, 5].Size = new Size(25, 80);
-                bodyParts[i, 6].Size = new Size(25, 80);
-                bodyParts[i, 7].Size = new Size(80, 100);
+                bodyParts[i, 5].Size = new Size(60, 60);
+                bodyParts[i, 6].Size = new Size(25, 60);
+                bodyParts[i, 7].Size = new Size(25, 60);
 
                 int margin = 5;
-                bodyParts[i, 0].Location = new Point(startX + margin + 25 + 10, startY);
-                bodyParts[i, 1].Location = new Point(startX, startY + 60 + margin);
-                bodyParts[i, 2].Location = new Point(startX, startY + 120 + margin * 2);
-                bodyParts[i, 3].Location = new Point(startX + margin * 2 + 105, startY + 60 + margin);
-                bodyParts[i, 4].Location = new Point(startX + margin * 2 + 105, startY + 120 + margin * 2);
-                bodyParts[i, 5].Location = new Point(startX + 25 + margin, startY + 160 + margin * 2);
-                bodyParts[i, 6].Location = new Point(startX + 80 + margin, startY + 160 + margin * 2);
-                bodyParts[i, 7].Location = new Point(startX + 25 + margin, startY + 60 + margin);
+                bodyParts[i, 0].Location = new Point(startX + 25 + margin, startY + 160 + margin * 2);
+                bodyParts[i, 1].Location = new Point(startX + 80 + margin, startY + 160 + margin * 2);
+                bodyParts[i, 2].Location = new Point(startX + 25 + margin, startY + 60 + margin);
+                bodyParts[i, 3].Location = new Point(startX, startY + 60 + margin);
+                bodyParts[i, 4].Location = new Point(startX, startY + 120 + margin * 2);
+                bodyParts[i, 5].Location = new Point(startX + margin + 25 + 10, startY);
+                bodyParts[i, 6].Location = new Point(startX + margin * 2 + 105, startY + 60 + margin);
+                bodyParts[i, 7].Location = new Point(startX + margin * 2 + 105, startY + 120 + margin * 2);
 
                 /*PictureBox belly = new PictureBox();
                 belly.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -671,7 +671,7 @@ namespace WindowsFormsApp1
             {
                 for (int i = 0; i < numberOfPeople; i = i + 1)
                 {
-                    socket.SendTo(data_array, i * bodyPart, 7, 0, devs[i]);
+                    socket.SendTo(data_array, i * bodyPart, bodyPart, 0, devs[i]);
                 }
                 if (temp == null)
                 {
